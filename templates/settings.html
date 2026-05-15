@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Paramètres{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h3 class="mb-3">Paramètres application</h3>
+    <form method="post" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Nom de l'application</label>
+        <input class="form-control" name="app_name" value="{{ settings.get('app_name', 'Sales Manager') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Thème par défaut</label>
+        <select class="form-select" name="default_theme">
+          <option value="light" {% if settings.get('default_theme') == 'light' %}selected{% endif %}>light</option>
+          <option value="dark" {% if settings.get('default_theme') == 'dark' %}selected{% endif %}>dark</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Éléments par page</label>
+        <input class="form-control" name="items_per_page" value="{{ settings.get('items_per_page', '10') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Objectif mensuel RDV</label>
+        <input class="form-control" name="monthly_goal" value="{{ settings.get('monthly_goal', '40') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Actions du jour (max)</label>
+        <input class="form-control" name="actions_widget_limit" value="{{ settings.get('actions_widget_limit', '6') }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email contact Sales (rapports)</label>
+        <input class="form-control" name="sales_contact_email" value="{{ settings.get('sales_contact_email', 'sales@ishango-it.com') }}">
+      </div>
+      <div class="col-12"><hr class="my-2"></div>
+      <div class="col-md-6">
+        <label class="form-label">Rapports PDF — Fait par</label>
+        <input class="form-control" name="report_author_name" value="{{ settings.get('report_author_name', 'Josué Mbuyu wa Kabinga') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Poste</label>
+        <input class="form-control" name="report_author_title" value="{{ settings.get('report_author_title', 'Technical sales') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Email (auteur)</label>
+        <input class="form-control" name="report_author_email" value="{{ settings.get('report_author_email', 'josue.mbuyu@ishango-it.com') }}">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Suivi projet{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">{{ project.title }}</h2>
+    <div class="text-muted small">
+      Client: {{ project.client_name or "-" }} | Responsable: {{ project.owner_name or "-" }} | Créé le: {{ (project.created_at or "-")[:10] if project.created_at else "-" }} | Échéance: {{ project.due_date or "-" }}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('projects.edit_project', project_id=project.id) }}" class="btn btn-outline-primary">Modifier</a>
+    <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-secondary">Retour</a>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <div class="small text-muted">Progression actuelle</div>
+        <div class="fw-semibold">{{ project.progress }}%</div>
+      </div>
+      <div class="text-end">
+        <span class="badge stage-badge stage-{{ project.stage }}">{{ project.stage|replace('_', ' ')|title }}</span>
+        <span class="badge {% if project.status == 'termine' %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ project.status|replace('_', ' ')|title }}</span>
+      </div>
+    </div>
+    <div class="progress mt-3" role="progressbar" aria-valuenow="{{ project.progress }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" style="width: {{ project.progress }}%">{{ project.progress }}%</div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Mise à jour</h5>
+      <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#projectQuickUpdate" aria-expanded="true">
+        Mettre à jour
+      </button>
+    </div>
+    <div class="collapse show" id="projectQuickUpdate">
+      <form method="post" action="{{ url_for('projects.add_project_update', project_id=project.id) }}" class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Résumé</label>
+          <input class="form-control" name="summary" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Étape</label>
+          <select class="form-select" name="stage">
+            {% for key, label in stage_choices %}
+            <option value="{{ key }}" {% if project.stage == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Progression</label>
+          <select class="form-select" name="progress">
+            {% for value in progress_choices %}
+            <option value="{{ value }}" {% if project.progress == value %}selected{% endif %}>{{ value }}%</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Prochaine action</label>
+          <textarea class="form-control" rows="2" name="next_action"></textarea>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Échéance</label>
+          <input type="date" class="form-control" name="next_action_date">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_blocked" value="1" id="is_blocked">
+            <label class="form-check-label" for="is_blocked">Bloqué</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="mb-3">Historique du journal</h5>
+    <div class="vstack gap-3">
+      {% for u in updates %}
+      <div class="border rounded p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold">{{ u.summary }}</div>
+          <div class="small text-muted">{{ u.created_at }}</div>
+        </div>
+        <div class="small mb-2">
+          {% if u.is_blocked %}<span class="badge text-bg-danger">Bloqué</span>{% endif %}
+        </div>
+        {% if u.stage_snapshot or u.progress_snapshot is not none %}
+        <div class="small">
+          <strong>Mise à jour:</strong>
+          {% if u.stage_snapshot %}Étape = {{ u.stage_snapshot|replace('_', ' ')|title }}{% endif %}
+          {% if u.stage_snapshot and u.progress_snapshot is not none %} | {% endif %}
+          {% if u.progress_snapshot is not none %}Progression = {{ u.progress_snapshot }}%{% endif %}
+        </div>
+        {% endif %}
+        {% if u.next_action %}<div class="small"><strong>Prochaine action:</strong> {{ u.next_action }}</div>{% endif %}
+        {% if u.next_action_date %}<div class="small"><strong>Échéance:</strong> {{ u.next_action_date }}</div>{% endif %}
+        <div class="small text-muted mt-2">Par: {{ u.username or "Système" }}</div>
+      </div>
+      {% else %}
+      <div class="text-muted">Aucune entrée de suivi pour ce projet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

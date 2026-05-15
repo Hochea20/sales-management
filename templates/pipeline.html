@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Pipeline commercial</h2>
+  <a href="{{ url_for('clients.create_client') }}" class="btn btn-primary">Nouveau client</a>
+</div>
+
+<form class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input class="form-control" name="q" placeholder="Rechercher un client, email, téléphone..." value="{{ q }}">
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="company">
+      <option value="">Toutes les entreprises</option>
+      {% for row in companies %}
+      <option value="{{ row.company }}" {% if company == row.company %}selected{% endif %}>{{ row.company }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Filtrer</button>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('pipeline.board') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+  </div>
+</form>
+
+<div class="table-top-scrollbar" id="pipelineTopScrollbar">
+  <div class="table-top-scrollbar-inner" id="pipelineTopScrollbarInner"></div>
+</div>
+<div class="kanban-board" id="pipelineBoardScroll" data-top-scroll-sync>
+  {% for stage_key, stage_label in stages %}
+  <section class="kanban-column">
+    <div class="kanban-header">
+      <h6 class="mb-0">{{ stage_label }}</h6>
+      <span class="badge text-bg-light">{{ grouped[stage_key]|length }}</span>
+    </div>
+    <div class="kanban-body">
+      {% for client in grouped[stage_key] %}
+      <article class="kanban-card">
+        <div class="d-flex justify-content-between">
+          <strong>{{ client.company or client.name }}</strong>
+          <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="small">Editer</a>
+        </div>
+        <p class="small text-muted mb-1">{{ client.location or "-" }}</p>
+        <p class="small text-muted mb-2">{{ client.email or "-" }}</p>
+        <form method="post" action="{{ url_for('pipeline.move') }}" class="d-flex gap-2">
+          <input type="hidden" name="client_id" value="{{ client.id }}">
+          <select class="form-select form-select-sm" name="stage">
+            {% for k, label in stages %}
+            <option value="{{ k }}" {% if k == stage_key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-sm btn-outline-success">Deplacer</button>
+        </form>
+      </article>
+      {% else %}
+      <div class="kanban-empty">Aucun client</div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

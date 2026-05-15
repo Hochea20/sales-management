@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}Clients{% endblock %}
+
+
+
+{% block content %}
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+
+
+  <h2 class="mb-0">Clients</h2>
+
+
+
+  <a href="{{ url_for('clients.create_client') }}" class="btn btn-primary">Ajouter client</a>
+
+
+
+</div>
+
+
+
+
+
+
+
+<form class="row g-2 mb-3">
+
+
+
+  <div class="col-md-4">
+
+
+
+    <input class="form-control" name="q" placeholder="Rechercher..." value="{{ q }}">
+
+
+
+  </div>
+
+
+
+  <div class="col-md-3">
+
+
+
+    <select class="form-select" name="location">
+
+
+
+      <option value="">Tous les lieux</option>
+
+
+
+      {% for row in locations %}
+
+
+
+      <option value="{{ row.location }}" {% if location == row.location %}selected{% endif %}>{{ row.location }}</option>
+
+
+
+      {% endfor %}
+
+
+
+    </select>
+
+
+
+  </div>
+
+
+
+  <div class="col-auto">
+
+
+
+    <button class="btn btn-outline-secondary">Filtrer</button>
+
+
+
+  </div>
+
+
+
+</form>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="small text-muted">Prospection:</span>
+      <span class="badge text-bg-secondary" id="clientProspectCount">0 sélectionné(s)</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="copySelectedClientEmails">Copier emails</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="copySelectedClientPhones">Copier téléphones</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="exportSelectedClientsCsv">Exporter sélection CSV</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="card shadow-sm">
+  <div class="table-top-scrollbar" id="clientsTopScrollbar">
+    <div class="table-top-scrollbar-inner" id="clientsTopScrollbarInner"></div>
+  </div>
+  <div class="table-responsive" id="clientsTableScroll" data-top-scroll-sync>
+  <table class="table mb-0 align-middle">
+
+
+
+    <thead><tr><th style="width: 36px;"><input type="checkbox" id="selectAllClients"></th><th>Nom de l'entreprise</th><th>Pipeline</th><th>Téléphone</th><th>Lieu</th><th>Email</th><th></th></tr></thead>
+
+
+
+    <tbody>
+
+
+
+      {% for client in clients %}
+
+
+
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            class="client-prospect-check"
+            data-name="{{ client.company or client.name }}"
+            data-company="{{ client.company or client.name }}"
+            data-location="{{ client.location or '' }}"
+            data-email="{{ client.email or '' }}"
+            data-phone="{{ client.phone or '' }}"
+          >
+        </td>
+
+        <td>{{ client.company or client.name }}</td>
+
+
+
+        <td>
+          <span class="badge text-bg-success-subtle text-success">
+            {{ stage_labels.get(client.pipeline_stage, client.pipeline_stage) }}
+          </span>
+        </td>
+
+
+
+        <td>{{ client.phone or "-" }}</td>
+
+
+
+        <td>{{ client.location or "-" }}</td>
+
+
+
+        <td>{{ client.email or "-" }}</td>
+
+
+
+        <td class="text-end">
+
+
+
+          <a href="{{ url_for('clients.client_detail', client_id=client.id) }}" class="btn btn-sm btn-outline-secondary">Détail</a>
+
+
+
+          <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+
+
+
+          <form method="post" action="{{ url_for('clients.delete_client', client_id=client.id) }}" class="d-inline" onsubmit="return confirmDelete()">
+
+
+
+            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+
+
+
+          </form>
+
+
+
+        </td>
+
+
+
+      </tr>
+
+
+
+      {% else %}
+
+
+
+      <tr><td colspan="7" class="text-muted p-3">Aucun client trouvé.</td></tr>
+
+
+
+      {% endfor %}
+
+
+
+    </tbody>
+
+
+
+  </table>
+  </div>
+</div>
+
+
+
+
+
+
+
+{% if total_pages > 1 %}
+
+
+
+<nav class="mt-3">
+
+
+
+  <ul class="pagination">
+
+
+
+    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+
+
+
+      <a class="page-link" href="{{ url_for('clients.list_clients', q=q, location=location, page=page-1) }}">Precedent</a>
+
+
+
+    </li>
+
+
+
+    <li class="page-item disabled"><span class="page-link">Page {{ page }} / {{ total_pages }}</span></li>
+
+
+
+    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+
+
+
+      <a class="page-link" href="{{ url_for('clients.list_clients', q=q, location=location, page=page+1) }}">Suivant</a>
+
+
+
+    </li>
+
+
+
+  </ul>
+
+
+
+</nav>
+
+
+
+{% endif %}
+
+
+
+{% endblock %}
+
+
+

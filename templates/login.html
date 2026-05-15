@@ -1,0 +1,51 @@
+﻿{% extends "base.html" %}
+{% block title %}Connexion{% endblock %}
+{% block guest_content %}
+<div class="row justify-content-center login-simple">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm login-card-clean">
+      <div class="card-body p-4 p-lg-5">
+        <div class="text-center mb-3">
+          <img src="{{ url_for('static', filename='img/ishango-logo.png') }}" alt="Ishango" class="login-logo">
+        </div>
+        <h4 class="mb-2 text-center">Connexion</h4>
+        <p class="text-muted text-center mb-4">Utilisez vos identifiants professionnels.</p>
+        <form method="post">
+          <input type="hidden" name="_csrf_token" value="{{ session.get('_csrf_token', '') }}">
+          <div class="mb-3">
+            <label class="form-label">Email ou nom d'utilisateur</label>
+            <input name="identifier" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Mot de passe</label>
+            <input
+              type="password"
+              id="loginPassword"
+              name="password"
+              class="form-control"
+              required
+            >
+          </div>
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="toggleLoginPassword">
+            <label class="form-check-label" for="toggleLoginPassword">
+              Afficher le mot de passe
+            </label>
+          </div>
+          <button class="btn btn-primary w-100">Se connecter</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    const passwordInput = document.getElementById("loginPassword");
+    const toggle = document.getElementById("toggleLoginPassword");
+    if (!passwordInput || !toggle) return;
+    toggle.addEventListener("change", function () {
+      passwordInput.type = this.checked ? "text" : "password";
+    });
+  })();
+</script>
+{% endblock %}

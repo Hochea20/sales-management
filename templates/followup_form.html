@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}Nouveau suivi{% endblock %}
+
+
+
+{% block content %}
+
+
+
+<div class="card shadow-sm">
+
+
+
+  <div class="card-body p-4">
+
+
+
+    <h3 class="mb-3">Creer un suivi</h3>
+
+
+
+    <form method="post" class="row g-3">
+      {% if return_to %}
+      <input type="hidden" name="return_to" value="{{ return_to }}">
+      {% endif %}
+
+
+
+      <div class="col-md-8">
+
+
+
+        <label class="form-label">Rendez-vous associé (optionnel)</label>
+
+
+
+        <select name="appointment_id" class="form-select">
+          <option value="">Aucun</option>
+
+
+
+          {% for appt in appointments %}
+
+
+
+            <option value="{{ appt.id }}" {% if selected_appointment_id == appt.id %}selected{% endif %}>{{ appt.client_name }} - {{ appt.date }}</option>
+
+
+
+          {% endfor %}
+
+
+
+        </select>
+
+
+
+      </div>
+
+
+
+      <div class="col-md-4">
+
+
+
+        <label class="form-label">Date d'echeance</label>
+
+
+
+        <input type="date" name="due_date" class="form-control" required value="{{ default_due_date }}">
+
+
+
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Priorité</label>
+        <select name="priority" class="form-select">
+          <option value="basse">Basse</option>
+          <option value="moyenne" selected>Moyenne</option>
+          <option value="haute">Haute</option>
+          <option value="critique">Critique</option>
+        </select>
+      </div>
+
+      <div class="col-md-8">
+        <label class="form-label">Contexte (client/module)</label>
+        <input name="context_label" class="form-control" value="{{ prefill_context or '' }}" placeholder="Ex: Nom du client">
+      </div>
+
+
+
+      <div class="col-12">
+
+
+
+        <label class="form-label">Titre</label>
+
+
+
+        <input name="title" class="form-control" required value="{{ prefill_title or '' }}">
+
+
+
+      </div>
+
+
+
+      <div class="col-12">
+
+
+
+        <label class="form-label">Notes</label>
+
+
+
+        <textarea name="notes" class="form-control" rows="4"></textarea>
+
+
+
+      </div>
+
+
+
+      <div class="col-12">
+
+
+
+        <button class="btn btn-primary">Creer</button>
+
+
+
+        <a class="btn btn-outline-secondary" href="{{ url_for('followups.list_followups') }}">Annuler</a>
+
+
+
+      </div>
+
+
+
+    </form>
+
+
+
+  </div>
+
+
+
+</div>
+
+
+
+{% endblock %}
+
+
+

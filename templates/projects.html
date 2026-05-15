@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Projets{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Projets</h2>
+  <a href="{{ url_for('projects.create_project') }}" class="btn btn-primary">Nouveau projet</a>
+</div>
+
+<form class="row g-2 mb-3">
+  {% if mine %}<input type="hidden" name="mine" value="1">{% endif %}
+  {% if focus_today %}<input type="hidden" name="focus_today" value="1">{% endif %}
+  <div class="col-md-6">
+    <input class="form-control" name="q" value="{{ q }}" placeholder="Titre, responsable, prochaine action...">
+  </div>
+  <div class="col-md-4">
+    <select class="form-select" name="status">
+      <option value="">Tous les statuts</option>
+      {% for key, label in status_choices %}
+      <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-secondary w-100">Filtrer</button>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="table-responsive" data-top-scroll-sync>
+  <table class="table mb-0 align-middle">
+    <thead>
+      <tr>
+        <th>Projet</th>
+        <th>Client</th>
+        <th>Responsable</th>
+        <th>Assigné</th>
+        <th>Étape</th>
+        <th>Statut</th>
+        <th>Priorité</th>
+        <th>Progression</th>
+        <th>Créé le</th>
+        <th>Échéance</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in projects %}
+      <tr>
+        <td class="fw-semibold">{{ p.title }}</td>
+        <td>{{ p.client_name or "-" }}</td>
+        <td>{{ p.owner_name or "-" }}</td>
+        <td>{{ p.assignees or "-" }}</td>
+        <td>
+          <span class="badge stage-badge stage-{{ p.stage }}">
+            {{ p.stage|replace('_', ' ')|title }}
+          </span>
+        </td>
+        <td>{{ p.status|replace('_', ' ')|title }}</td>
+        <td>
+          <span class="badge {% if p.priority == 'critique' %}text-bg-danger{% elif p.priority == 'haute' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">
+            {{ p.priority|title }}
+          </span>
+        </td>
+        <td style="min-width: 130px;">
+          <div class="progress" role="progressbar" aria-valuenow="{{ p.progress }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width: {{ p.progress }}%">{{ p.progress }}%</div>
+          </div>
+        </td>
+        <td>{{ (p.created_at or "-")[:10] if p.created_at else "-" }}</td>
+        <td>{{ p.due_date or "-" }}</td>
+        <td class="text-end">
+          <a href="{{ url_for('projects.project_detail', project_id=p.id) }}" class="btn btn-sm btn-outline-secondary">Suivi</a>
+          <a href="{{ url_for('projects.edit_project', project_id=p.id) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+          <form method="post" action="{{ url_for('projects.delete_project', project_id=p.id) }}" class="d-inline" onsubmit="return confirmDelete()">
+            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="11" class="text-muted p-3">Aucun projet trouvé.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

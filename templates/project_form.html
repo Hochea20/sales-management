@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{% if project %}Modifier projet{% else %}Nouveau projet{% endif %}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">{% if project %}Modifier projet{% else %}Nouveau projet{% endif %}</h2>
+  <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-secondary">Retour</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <form method="post" class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Titre du projet</label>
+        <input class="form-control" name="title" required value="{{ project.title if project else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Client lié</label>
+        <select class="form-select" name="client_id">
+          <option value="">Aucun</option>
+          {% for c in clients %}
+          <option value="{{ c.id }}" {% if project and project.client_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Responsable projet</label>
+        <input class="form-control" name="owner_name" value="{{ project.owner_name if project else '' }}">
+        <small class="text-muted">Personne qui pilote le projet côté métier.</small>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Personnes assignées</label>
+        <select class="form-select" name="assignee_user_id">
+          <option value="">Aucune personne</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if assigned_user_id == u.id %}selected{% endif %}>
+            {{ u.username }} ({{ u.role }})
+          </option>
+          {% else %}
+          <option disabled>Aucun utilisateur actif</option>
+          {% endfor %}
+        </select>
+        <small class="text-muted">Sélectionnez une seule personne.</small>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Priorité</label>
+        <select class="form-select" name="priority">
+          {% for key, label in priority_choices %}
+          <option value="{{ key }}" {% if project and project.priority == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Échéance</label>
+        <input type="date" class="form-control" name="due_date" value="{{ project.due_date if project else '' }}">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" rows="4" name="notes">{{ project.notes if project else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

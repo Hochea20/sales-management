@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Audit{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Journal d'audit</h3>
+  <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}">Retour utilisateurs</a>
+</div>
+
+<div class="table-responsive card shadow-sm">
+  <table class="table mb-0 align-middle">
+    <thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Entite</th><th>ID</th><th>Details</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.created_at }}</td>
+        <td>{{ r.username or "-" }}</td>
+        <td>{{ r.action }}</td>
+        <td>{{ r.entity_type }}</td>
+        <td>{{ r.entity_id or "-" }}</td>
+        <td><code>{{ r.details }}</code></td>
+        <td>{{ r.ip_address or "-" }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-muted p-3">Aucun événement.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination">
+    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+      {% if page <= 1 %}
+      <span class="page-link">Precedent</span>
+      {% else %}
+      <a class="page-link" href="{{ url_for('admin.audit', page=page-1) }}">Precedent</a>
+      {% endif %}
+    </li>
+    <li class="page-item disabled"><span class="page-link">Page {{ page }} / {{ total_pages }}</span></li>
+    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+      {% if page >= total_pages %}
+      <span class="page-link">Suivant</span>
+      {% else %}
+      <a class="page-link" href="{{ url_for('admin.audit', page=page+1) }}">Suivant</a>
+      {% endif %}
+    </li>
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

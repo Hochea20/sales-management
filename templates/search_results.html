@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Recherche globale{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Résultats de recherche</h2>
+  {% if q %}
+  <span class="badge text-bg-primary">Recherche: "{{ q }}"</span>
+  {% endif %}
+</div>
+
+{% if not q %}
+<div class="alert alert-info">Saisissez un terme dans la barre de recherche pour commencer.</div>
+{% else %}
+<div class="row g-3">
+  <div class="col-xl-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Clients ({{ clients|length }})</h5>
+        <ul class="list-group list-group-flush">
+          {% for c in clients %}
+          <li class="list-group-item">
+            <div class="fw-semibold">{{ c.name }}</div>
+            <div class="small text-muted">{{ c.company or "-" }}</div>
+            <a class="small" href="{{ url_for('clients.edit_client', client_id=c.id) }}">Voir la fiche</a>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">Aucun résultat.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Rendez-vous ({{ appointments|length }})</h5>
+        <ul class="list-group list-group-flush">
+          {% for a in appointments %}
+          <li class="list-group-item">
+            <div class="fw-semibold">{{ a.client_name }}</div>
+            <div class="small text-muted">{{ a.date }} {{ a.time }} - {{ a.location or "-" }}</div>
+            <span class="badge {% if a.status == 'done' %}text-bg-success{% else %}text-bg-warning{% endif %}">
+              {{ "Terminé" if a.status == "done" else "En attente" }}
+            </span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">Aucun résultat.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Suivis ({{ followups|length }})</h5>
+        <ul class="list-group list-group-flush">
+          {% for f in followups %}
+          <li class="list-group-item">
+            <div class="fw-semibold">{{ f.title }}</div>
+            <div class="small text-muted">{{ f.client_name }} - Échéance {{ f.due_date }}</div>
+            <span class="badge {% if f.status == 'done' %}text-bg-success{% else %}text-bg-warning{% endif %}">
+              {{ "Terminé" if f.status == "done" else "En attente" }}
+            </span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">Aucun résultat.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

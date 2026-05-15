@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
+
+  <div>
+
+    <h2 class="mb-1">Accueil Executif</h2>
+
+    <p class="text-muted mb-0">Vue de pilotage commercial et performance</p>
+
+  </div>
+
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('clients.create_client') }}">Nouveau client</a>
+
+    <a class="btn btn-primary" href="{{ url_for('appointments.create_appointment') }}">Nouveau rendez-vous</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('projects.create_project') }}">Nouveau projet</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('suppliers.create_supplier') }}">Nouveau fournisseur</a>
+
+  </div>
+
+</div>
+
+{% if notifications %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Notifications intelligentes</h5>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-primary">{{ notifications|length }}</span>
+        {% if only_unread %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('dashboard.home') }}">Voir toutes</a>
+        {% else %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('dashboard.home', only_unread=1) }}">Non lues uniquement</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-grid gap-2">
+      {% for n in notifications %}
+      <div class="alert alert-{{ n.level }} mb-0 py-2 d-flex justify-content-between align-items-center gap-2">
+        <div>
+          <strong>{{ n.title }}</strong>
+          <span class="badge text-bg-dark ms-1">{{ n.priority }}</span>
+          - {{ n.message }}
+        </div>
+        {% if not n.seen %}
+        <form method="post" action="{{ url_for('dashboard.mark_notification_seen') }}">
+          <input type="hidden" name="notif_key" value="{{ n.key }}">
+          <button class="btn btn-sm btn-outline-secondary">Marquer comme vu</button>
+        </form>
+        {% else %}
+        <span class="badge text-bg-success">Vu</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+      {% if imminent_appointments %}
+      <div class="small text-muted">
+        {% for item in imminent_appointments %}
+        <div>- {{ item.time }} : {{ item.client_name }}{% if item.location %} ({{ item.location }}){% endif %}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Clients</div><div class="h4 mb-0">{{ stats.total_clients }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">RDV total</div><div class="h4 mb-0">{{ stats.total_appointments }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">RDV aujourd'hui</div><div class="h4 mb-0">{{ stats.today_appointments }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Rendez-vous en attente</div><div class="h4 mb-0">{{ stats.pending_appointments }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Rendez-vous en retard</div><div class="h4 mb-0 text-warning">{{ stats.overdue_appointments }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Suivis en attente</div><div class="h4 mb-0">{{ stats.pending_followups }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Projets total</div><div class="h4 mb-0">{{ stats.total_projects }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Projets en attente</div><div class="h4 mb-0">{{ stats.pending_projects }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Projets en retard</div><div class="h4 mb-0 text-warning">{{ stats.late_projects }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Projets bloqués</div><div class="h4 mb-0 text-danger">{{ stats.blocked_projects }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Projets actifs</div><div class="h4 mb-0">{{ stats.active_projects }}</div></div></div></div>
+
+  <div class="col-sm-6 col-xl-2"><div class="card stat-card"><div class="card-body"><div class="small text-muted">RDV terminés</div><div class="h4 mb-0">{{ stats.done_appointments }}</div></div></div></div>
+
+</div>
+
+
+
+<div class="row g-3 mb-3">
+
+</div>
+
+
+
+<div class="row g-3 mb-3">
+  <div class="col-xl-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Risques fournisseurs (essentiel)</h5>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('suppliers.list_suppliers') }}">Ouvrir Suivi Fournisseurs</a>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Retards</div>
+              <div class="h5 mb-0 text-warning">{{ supplier_kpis.late_count if supplier_kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Blocages</div>
+              <div class="h5 mb-0 text-danger">{{ supplier_kpis.blocked_count if supplier_kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Non conformités</div>
+              <div class="h5 mb-0 text-danger">{{ supplier_kpis.quality_issue_count if supplier_kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Valeur à risque</div>
+              <div class="h5 mb-0">{{ (supplier_kpis.risk_value if supplier_kpis else 0) or 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Taux service fournisseurs</div>
+              <div class="h5 mb-0">{{ supplier_service_rate }}%</div>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Fournisseur</th><th>Livraison</th><th>Échéance</th><th>Montant</th><th>Blocage</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for item in supplier_decisions %}
+              <tr>
+                <td>{{ item.supplier_name }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.expected_date or "-" }}</td>
+                <td>{{ item.amount or "-" }} {{ item.currency or "" }}</td>
+                <td>{{ item.blocker or "-" }}</td>
+                <td><span class="badge text-bg-primary">{{ item.action_recommandee }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-muted">Aucune décision fournisseur urgente aujourd'hui.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row g-3">
+
+  <div class="col-xl-7">
+
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <h5 class="mb-3">Prochains rendez-vous</h5>
+
+        <div class="table-responsive">
+
+          <table class="table table-sm align-middle mb-0">
+
+            <thead><tr><th>Client</th><th>Date</th><th>Heure</th><th>Lieu</th></tr></thead>
+
+            <tbody>
+
+              {% for item in upcoming %}
+
+              <tr><td>{{ item.client_name }}</td><td>{{ item.date }}</td><td>{{ item.time }}</td><td>{{ item.location or "-" }}</td></tr>
+
+              {% else %}
+
+              <tr><td colspan="4" class="text-muted">Aucun rendez-vous planifié.</td></tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-xl-5">
+
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <h5 class="mb-3">Actions du jour</h5>
+
+        <ul class="list-group list-group-flush">
+
+          {% for a in actions_today %}
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+
+            <span>
+
+              {% if a.kind == 'rdv_today' %}
+
+                RDV: {{ a.client_name }}
+
+              {% else %}
+
+                Relance: {{ a.client_name }}
+
+              {% endif %}
+
+              <small class="d-block text-muted">{{ a.subtitle or "-" }}</small>
+
+            </span>
+
+            <span class="badge text-bg-primary">{{ a.item_time or "urgent" }}</span>
+
+          </li>
+
+          {% else %}
+
+          <li class="list-group-item text-muted">Aucune action prioritaire.</li>
+
+          {% endfor %}
+
+        </ul>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<div class="row g-3 mt-1">
+
+  <div class="col-xl-12">
+
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <h5 class="mb-3">Actions projets des 7 prochains jours</h5>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Projet</th><th>Action planifiée</th><th>Échéance</th><th>Risque</th><th></th></tr></thead>
+            <tbody>
+              {% for item in weekly_project_actions %}
+              <tr>
+                <td>{{ item.project_title }}</td>
+                <td>{{ item.next_action }}</td>
+                <td>{{ item.next_action_date }}</td>
+                <td>
+                  <span class="badge {% if item.risk_level == 'eleve' %}text-bg-danger{% elif item.risk_level == 'moyen' %}text-bg-warning{% else %}text-bg-success{% endif %}">
+                    {{ item.risk_level|title }}
+                  </span>
+                  {% if item.is_blocked %}<span class="badge text-bg-danger ms-1">Bloqué</span>{% endif %}
+                </td>
+                <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('projects.project_detail', project_id=item.project_id) }}">Voir</a></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-muted">Aucune action projet planifiée cette semaine.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-xl-5">
+
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <h5 class="mb-3">Pipeline</h5>
+
+        <div class="row g-2">
+
+          {% for row in pipeline_summary %}
+
+          <div class="col-6">
+
+            <div class="p-2 border rounded dashboard-tile h-100">
+
+              <div class="small text-muted">{{ row.pipeline_stage|replace('_', ' ')|title }}</div>
+
+              <div class="fw-bold">{{ row.total }}</div>
+
+            </div>
+
+          </div>
+
+          {% else %}
+
+          <p class="text-muted mb-0">Aucune donnée pipeline.</p>
+
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-xl-7">
+
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <h5 class="mb-3">Derniers clients ajoutés</h5>
+
+        <div class="table-responsive">
+
+          <table class="table table-sm align-middle mb-0">
+
+            <thead><tr><th>Nom de l'entreprise</th><th>Pipeline</th></tr></thead>
+
+            <tbody>
+
+              {% for c in recent_clients %}
+
+              <tr>
+
+                <td>{{ c.company or c.name }}</td>
+
+                <td><span class="badge text-bg-success-subtle text-success">{{ c.pipeline_stage|replace('_', ' ')|title }}</span></td>
+
+              </tr>
+
+              {% else %}
+
+              <tr><td colspan="2" class="text-muted">Aucun client.</td></tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+

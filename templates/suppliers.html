@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Suivi Fournisseurs{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">Suivi Fournisseurs</h2>
+    <p class="text-muted mb-0">Suivi de l'avancement des livraisons et services partenaires.</p>
+  </div>
+  <a href="{{ url_for('suppliers.create_supplier') }}" class="btn btn-primary">Nouveau fournisseur</a>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#supplierDecisionKpis" aria-expanded="false" aria-controls="supplierDecisionKpis">
+    Indicateurs décisionnels
+  </button>
+</div>
+
+<form class="row g-2 mb-3">
+  <div class="col-md-8">
+    <input class="form-control" name="q" value="{{ q }}" placeholder="Nom fournisseur, contact, catégorie...">
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" name="status">
+      <option value="">Toutes alertes</option>
+      <option value="late" {% if status == 'late' %}selected{% endif %}>Retards</option>
+      <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>Blocages</option>
+      <option value="quality" {% if status == 'quality' %}selected{% endif %}>Qualité</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-secondary w-100">Filtrer</button>
+  </div>
+</form>
+
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="card shadow-sm collapse" id="supplierDecisionKpis">
+      <div class="card-body">
+        <h5 class="mb-3">Indicateurs décisionnels</h5>
+        <div class="row g-2">
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">En retard</div>
+              <div class="h5 mb-0 text-warning">{{ kpis.late_count if kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Bloquées</div>
+              <div class="h5 mb-0 text-danger">{{ kpis.blocked_count if kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Non conformes</div>
+              <div class="h5 mb-0 text-danger">{{ kpis.quality_issue_count if kpis else 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Valeur à risque</div>
+              <div class="h5 mb-0">{{ (kpis.risk_value if kpis else 0) or 0 }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-2 h-100">
+              <div class="small text-muted">Taux de service (à temps)</div>
+              <div class="h5 mb-0">{{ service_rate }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-12">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Livraisons / prestations</h5>
+          <span class="badge text-bg-primary">{{ deliveries_all|length }}</span>
+        </div>
+        <p class="text-muted small mb-3">Toutes les livraisons enregistrées (tous fournisseurs confondus).</p>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Livraison</th>
+                <th>Échéance</th>
+                <th>Projet impacté</th>
+                <th>Statut</th>
+                <th>Blocage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in deliveries_all %}
+              <tr>
+                <td class="fw-semibold">
+                  <a href="{{ url_for('suppliers.supplier_detail', supplier_id=item.supplier_id) }}" class="text-decoration-none">
+                    {{ item.supplier_name }}
+                  </a>
+                </td>
+                <td>{{ item.title }}</td>
+                <td>
+                  {% if item.expected_date %}
+                    {% if item.days_late > 0 %}
+                    <span class="badge text-bg-warning">{{ item.expected_date }} ({{ item.days_late }}j)</span>
+                    {% else %}
+                    <span class="text-muted">{{ item.expected_date }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.project_title or "-" }}</td>
+                <td><span class="badge text-bg-secondary">{{ status_labels.get(item.status, item.status) }}</span></td>
+                <td>{{ item.blocker or "-" }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-muted">Aucune livraison enregistrée.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Blocs "Alertes" et "Calendrier" supprimés sur demande. #}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Fournisseurs</h5>
+      <span class="badge text-bg-primary">{{ suppliers|length }}</span>
+    </div>
+    <p class="text-muted small mb-3">Liste des fournisseurs et charge actuelle (livraisons totales / ouvertes).</p>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Contact</th>
+            <th>Catégorie</th>
+            <th>Livraisons</th>
+            <th>Ouvertes</th>
+            <th>Créé le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suppliers %}
+          <tr>
+            <td class="fw-semibold">{{ s.name }}</td>
+            <td>{{ s.partner_type|title }}</td>
+            <td>{{ s.contact_name or "-" }}</td>
+            <td>{{ s.service_category or "-" }}</td>
+            <td>{{ s.deliveries_total or 0 }}</td>
+            <td>{{ s.deliveries_open or 0 }}</td>
+            <td>{{ (s.created_at or "-")[:10] if s.created_at else "-" }}</td>
+            <td class="text-end">
+              <a href="{{ url_for('suppliers.supplier_detail', supplier_id=s.id) }}" class="btn btn-sm btn-outline-secondary">Suivi</a>
+              <a href="{{ url_for('suppliers.edit_supplier', supplier_id=s.id) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+              <form method="post" action="{{ url_for('suppliers.delete_supplier', supplier_id=s.id) }}" class="d-inline" onsubmit="return confirmDelete()">
+                <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" class="text-muted">Aucun fournisseur enregistré.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

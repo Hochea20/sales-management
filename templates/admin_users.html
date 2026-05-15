@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Utilisateurs{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Gestion des utilisateurs</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.audit') }}">Voir journal d'audit</a>
+    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#createUserPanel" aria-expanded="false" aria-controls="createUserPanel">Créer utilisateur</button>
+  </div>
+</div>
+
+<div class="collapse mb-3" id="createUserPanel">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h5 class="mb-3">Créer un utilisateur</h5>
+      <form method="post" action="{{ url_for('admin.users') }}" autocomplete="off" id="createUserForm" class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">Nom d'utilisateur</label>
+          <input class="form-control" name="username" required autocomplete="off">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">E-mail</label>
+          <input class="form-control" type="email" name="email" required autocomplete="off">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Mot de passe</label>
+          <input class="form-control" type="password" name="password" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Rôle</label>
+          <select class="form-select" name="role">
+            <option value="sales">sales</option>
+            <option value="manager">manager</option>
+            <option value="technicien">technicien</option>
+            <option value="administration">administration</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary">Créer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="table-responsive card shadow-sm">
+  <table class="table mb-0 align-middle">
+    <thead>
+      <tr>
+        <th>Utilisateur</th>
+        <th>E-mail</th>
+        <th>Rôle</th>
+        <th>Statut</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="fw-semibold">{{ u.username }}</td>
+        <td>{{ u.email or "-" }}</td>
+        <td><span class="badge text-bg-secondary">{{ u.role }}</span></td>
+        <td>
+          {% if u.is_active %}
+          <span class="badge text-bg-success">Actif</span>
+          {% else %}
+          <span class="badge text-bg-secondary">Inactif</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          <button
+            class="btn btn-sm btn-outline-primary user-edit-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#editUserModal"
+            data-user-id="{{ u.id }}"
+            data-username="{{ u.username }}"
+            data-email="{{ u.email or '' }}"
+            data-role="{{ u.role }}"
+            data-is-active="{{ 1 if u.is_active else 0 }}"
+          >
+            Modifier
+          </button>
+          <form method="post" action="{{ url_for('admin.delete_user', user_id=u.id) }}" class="d-inline" onsubmit="return confirmDelete()">
+            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-muted p-3">Aucun utilisateur.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="editUserForm" autocomplete="off">
+        <div class="modal-header">
+          <h5 class="modal-title">Modifier utilisateur</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body row g-2">
+          <div class="col-12">
+            <label class="form-label">Nom d'utilisateur</label>
+            <input class="form-control" name="username" id="editUsername" required autocomplete="off">
+          </div>
+          <div class="col-12">
+            <label class="form-label">E-mail</label>
+            <input class="form-control" type="email" name="email" id="editEmail" required autocomplete="off">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Rôle</label>
+            <select class="form-select" name="role" id="editRole">
+              <option value="sales">sales</option>
+              <option value="manager">manager</option>
+              <option value="technicien">technicien</option>
+              <option value="administration">administration</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Statut</label>
+            <select class="form-select" name="is_active" id="editIsActive">
+              <option value="1">Actif</option>
+              <option value="0">Inactif</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Nouveau mot de passe (optionnel)</label>
+            <input class="form-control" type="password" name="new_password" id="editNewPassword" minlength="6" placeholder="Laisser vide pour ne pas changer" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

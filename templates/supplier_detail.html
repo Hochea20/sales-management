@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Suivi fournisseur{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">{{ supplier.name }}</h2>
+    <div class="text-muted small">
+      Type: {{ supplier.partner_type|title }} | Contact: {{ supplier.contact_name or "-" }} | Créé le: {{ (supplier.created_at or "-")[:10] if supplier.created_at else "-" }}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}" class="btn btn-outline-primary">Modifier</a>
+    <form method="post" action="{{ url_for('suppliers.delete_supplier', supplier_id=supplier.id) }}" class="d-inline" onsubmit="return confirmDelete()">
+      <button class="btn btn-outline-danger">Supprimer</button>
+    </form>
+    <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-outline-secondary">Retour</a>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5 class="mb-1">Nouvelle livraison / prestation</h5>
+    <p class="text-muted small mb-3">Saisissez l'essentiel d'abord, puis ouvrez les options avancées si nécessaire.</p>
+    <form method="post" action="{{ url_for('suppliers.add_delivery', supplier_id=supplier.id) }}" class="row g-3">
+      <div class="col-md-12">
+        <label class="form-label">Titre</label>
+        <input class="form-control" name="title" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Projet lié (optionnel)</label>
+        <select class="form-select" name="project_id">
+          <option value="">Aucun</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Statut</label>
+        <select class="form-select" name="status">
+          {% for key, label in status_choices %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Date livraison</label>
+        <input type="date" class="form-control" name="delivered_date">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Prochaine action</label>
+        <input class="form-control" name="next_step">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Blocage</label>
+        <input class="form-control" name="blocker" placeholder="Laisser vide si aucun blocage">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#supplierAdvancedDelivery" aria-expanded="false" aria-controls="supplierAdvancedDelivery">
+          Options avancées
+        </button>
+      </div>
+      <div class="col-12 collapse" id="supplierAdvancedDelivery">
+        <div class="border rounded p-3">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Qualité</label>
+              <select class="form-select" name="quality_status">
+                {% for key, label in quality_choices %}
+                <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Montant</label>
+              <input type="number" step="0.01" class="form-control" name="amount">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Devise</label>
+              <input class="form-control" name="currency" value="USD">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="mb-3">Historique décisionnel (timeline)</h5>
+    <div class="vstack gap-2 mb-4">
+      {% for t in timeline %}
+      <div class="border rounded p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="fw-semibold">{{ t.title }}</div>
+          <div class="small text-muted">{{ t.created_at }}</div>
+        </div>
+        <div class="small">
+          <span class="badge text-bg-secondary">{{ status_labels.get(t.status, t.status) }}</span>
+          <span class="badge {% if t.quality_status == 'issue' %}text-bg-danger{% elif t.quality_status == 'warning' %}text-bg-warning{% else %}text-bg-success{% endif %}">
+            {{ quality_labels.get(t.quality_status, t.quality_status) }}
+          </span>
+          {% if t.blocker %}<span class="badge text-bg-danger">Blocage actif</span>{% endif %}
+          {% if t.delay_days > 0 %}<span class="badge text-bg-warning">Retard +{{ t.delay_days }} jour(s)</span>{% elif t.delay_days < 0 %}<span class="badge text-bg-success">Avance {{ t.delay_days|abs }} jour(s)</span>{% endif %}
+        </div>
+        <div class="small text-muted">
+          Planifié: {{ t.expected_date or "-" }} | Livré: {{ t.delivered_date or "-" }} | Progression: {{ t.progress }}%
+        </div>
+      </div>
+      {% else %}
+      <div class="text-muted">Aucun historique disponible.</div>
+      {% endfor %}
+    </div>
+
+    <h5 class="mb-3">Mises à jour rapides</h5>
+    <div class="vstack gap-2">
+      {% for d in deliveries %}
+      <div class="border rounded p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ d.title }}</div>
+            <div class="small text-muted">Planifié: {{ d.expected_date or "-" }} | Livré: {{ d.delivered_date or "-" }} | Projet: {{ d.project_title or "-" }}</div>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#deliveryQuick{{ d.id }}" aria-expanded="false">
+            Mettre à jour
+          </button>
+        </div>
+        <div class="small mt-1">
+          <span class="badge text-bg-secondary">{{ status_labels.get(d.status, d.status) }}</span>
+          <span class="badge {% if d.quality_status == 'issue' %}text-bg-danger{% elif d.quality_status == 'warning' %}text-bg-warning{% else %}text-bg-success{% endif %}">
+            {{ quality_labels.get(d.quality_status, d.quality_status) }}
+          </span>
+          <span class="badge text-bg-light">{{ d.progress }}%</span>
+        </div>
+        <div class="collapse mt-2" id="deliveryQuick{{ d.id }}">
+          <form method="post" action="{{ url_for('suppliers.update_delivery_status', delivery_id=d.id) }}" class="row g-2">
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" name="status">
+                {% for key, label in status_choices %}
+                <option value="{{ key }}" {% if d.status == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" name="quality_status">
+                {% for key, label in quality_choices %}
+                <option value="{{ key }}" {% if d.quality_status == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <input class="form-control form-control-sm" name="next_step" value="{{ d.next_step or '' }}" placeholder="Prochaine action">
+            </div>
+            <div class="col-md-3">
+              <input type="date" class="form-control form-control-sm" name="delivered_date" value="{{ d.delivered_date or '' }}">
+            </div>
+            <div class="col-md-9">
+              <input class="form-control form-control-sm" name="blocker" value="{{ d.blocker or '' }}" placeholder="Blocage (laisser vide si aucun)">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-sm btn-outline-primary w-100">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-muted">Aucune livraison enregistrée.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

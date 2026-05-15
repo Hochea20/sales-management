@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Rapports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">Module Rapports</h2>
+    <p class="text-muted mb-0">Centralisez tous les exports et documents de suivi.</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Rapport hebdomadaire</h5>
+        <p class="text-muted small">Aperçu avant téléchargement, export PDF et document Word.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-outline-dark" href="{{ url_for('exports.preview_weekly_report_pdf') }}" target="_blank">Aperçu PDF</a>
+          <a class="btn btn-primary" href="{{ url_for('exports.export_weekly_report_pdf') }}">Télécharger PDF</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('exports.export_weekly_report_docx') }}">Télécharger document Word</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Exports au format CSV</h5>
+        <p class="text-muted small">Exports de données opérationnelles (clients, rendez-vous).</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-outline-secondary" href="{{ url_for('exports.export_clients') }}">Exporter clients CSV</a>
+          <a class="btn btn-outline-secondary" href="{{ url_for('exports.export_appointments') }}">Exporter rendez-vous CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
